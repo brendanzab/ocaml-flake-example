@@ -1,5 +1,7 @@
 # OCaml flake example project
 
+![ci workflow](https://github.com/brendanzab/ocaml-flake-example/actions/workflows/ci/badge.svg)
+
 This is an overly elaborate example of building a ‘Hello World’ package with
 [Nix flakes], [OCaml], and [Dune]. The following things are demonstrated:
 
