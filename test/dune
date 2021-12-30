@@ -1,0 +1,14 @@
+; For more information on writing and running tests, see the Dune documentation:
+;
+; - https://dune.readthedocs.io/en/stable/tests.html
+; - https://dune.readthedocs.io/en/stable/dune-files.html#tests-stanza
+
+(test
+ (name say_hello)
+ (libraries hello))
+
+; More information on Cram tests can be found in the Dune documentation:
+;
+; - https://dune.readthedocs.io/en/stable/tests.html#cram-tests
+(cram
+ (deps %{bin:hello}))

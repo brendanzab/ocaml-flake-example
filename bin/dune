@@ -1,0 +1,9 @@
+; More information on specifying executables can be found in the Dune documentation:
+;
+; - https://dune.readthedocs.io/en/stable/concepts.html#executables
+; - https://dune.readthedocs.io/en/stable/dune-files.html#executable
+
+(executable
+ (name main)
+ (public_name hello)
+ (libraries hello))

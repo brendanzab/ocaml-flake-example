@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "ocamllabs.ocaml-platform",
+        "cab404.vscode-direnv",
+        "jnoortheen.nix-ide",
+    ],
+}
