@@ -36,19 +36,15 @@
       {
         # Executed by `nix flake check`
         checks = {
-          # Run OCaml tests tests
-          hello = pkgs.runCommand "hello-tests"
-            {
-              src = ocaml-src;
-              nativeBuildInputs = [
-                ocamlPackages.dune_2
-                ocamlPackages.ocaml
-              ];
-            }
-            ''
-              mkdir $out
-              dune test
-            '';
+          # Run Dune tests
+          hello = ocamlPackages.buildDunePackage {
+            pname = "hello";
+            src = ocaml-src;
+            version = "0.1.0";
+            useDune2 = true;
+            doCheck = true;
+          };
+
           # Check Nix formatting
           nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
             {
