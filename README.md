@@ -1,6 +1,15 @@
 # OCaml flake example project
 
-![ci workflow](https://github.com/brendanzab/ocaml-flake-example/actions/workflows/ci/badge.svg)
+[![built with nix][nix-badge]][nix-url]
+[![ci workflow][ci-badge]][ci-url]
+[![docs][docs-badge]][docs-url]
+
+[nix-badge]: https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a
+[nix-url]: https://builtwithnix.org
+[ci-badge]: https://github.com/brendanzab/ocaml-flake-example/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/brendanzab/ocaml-flake-example/actions/workflows/ci.yml
+[docs-badge]: https://img.shields.io/badge/docs-odoc-blue
+[docs-url]: https://brendanzab.github.io/ocaml-flake-example
 
 This is an overly elaborate example of building a ‘Hello World’ package with
 [Nix flakes], [OCaml], and [Dune]. The following things are demonstrated:
