@@ -101,16 +101,19 @@ open result/share/doc/hello/index.html
 The tests can be run using the `nix` command with:
 
 ```sh
-nix flake test --print-build-logs
+nix flake check --print-build-logs
 ```
 
 This will also check that `flake.nix` conforms to the expected [flake schema],
 and will run formatting tests for the Nix files.
 
-The test output can be promoted with:
+Expect test failures can be [promoted][dune-promotion] in a development shell with:
 
 ```sh
 dune promote
 ```
 
+This will update the tests to their current expected output.
+
 [flake schema]: https://nixos.wiki/wiki/Flakes#Flake_schema
+[dune-promotion]: https://dune.readthedocs.io/en/stable/concepts.html#promotion
