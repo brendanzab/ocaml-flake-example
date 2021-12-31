@@ -50,7 +50,7 @@
           opam = pkgs.runCommand "check-opam"
             {
               nativeBuildInputs = [
-                pkgs.patdiff
+                pkgs.diffutils
                 ocamlPackages.findlib
 
                 self.checks.${system}.hello
@@ -58,9 +58,19 @@
             }
             ''
               mkdir $out
+
               echo "checking generated opam files"
-              patdiff -keep-whitespace -location-style omake \
-                '${./hello.opam}' "$(ocamlfind query hello)/opam"
+
+              set +e
+              diff -u '${./hello.opam}' "$(ocamlfind query hello)/opam"
+              exitcode=$?
+              set -e
+
+              if [ $exitcode -ne 0 ]; then
+                echo "error: The opam file differs from the one found in the nix store"
+                echo "hint: Run \`dune build\` in the source tree to regenerate it"
+                exit $exitcode
+              fi
             '';
 
 
