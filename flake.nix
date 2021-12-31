@@ -62,7 +62,7 @@
               echo "checking generated opam files"
 
               set +e
-              diff -u '${./hello.opam}' "$(ocamlfind query hello)/opam"
+              diff -u '${ocaml-src}/hello.opam' "$(ocamlfind query hello)/opam"
               exitcode=$?
               set -e
 
