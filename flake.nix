@@ -11,8 +11,10 @@
   outputs = { self, nixpkgs, flake-utils, nix-filter }:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        # Legacy packages that have not been converted to flakes
         pkgs = nixpkgs.legacyPackages.${system};
-        ocamlPackages = nixpkgs.legacyPackages.${system}.ocamlPackages;
+        # OCaml packages available on nixpkgs
+        ocamlPackages = pkgs.ocamlPackages;
 
         # OCaml source files
         ocaml-src = nix-filter.lib.filter {
@@ -37,7 +39,7 @@
       {
         # Executed by `nix flake check`
         checks = {
-          # Run Dune tests
+          # Build dune package with checks enabled
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
             src = ocaml-src;
@@ -46,7 +48,7 @@
             doCheck = true;
           };
 
-          # Check generated OPAM file
+          # Check generated opam file
           opam = pkgs.runCommand "check-opam"
             {
               nativeBuildInputs = [
