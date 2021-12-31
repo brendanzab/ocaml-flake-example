@@ -1,5 +1,6 @@
 (lang dune 2.9)
 (name hello)
+(license MIT-0)
 
 ; https://dune.readthedocs.io/en/stable/opam.html#generating-opam-files
 (generate_opam_files true)
