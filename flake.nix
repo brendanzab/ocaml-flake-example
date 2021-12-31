@@ -19,6 +19,7 @@
           root = ./.;
           include = [
             "dune-project"
+            (nix-filter.lib.matchExt "opam")
             (nix-filter.lib.inDirectory "bin")
             (nix-filter.lib.inDirectory "lib")
             (nix-filter.lib.inDirectory "test")
@@ -36,19 +37,33 @@
       {
         # Executed by `nix flake check`
         checks = {
-          # Run OCaml tests tests
-          hello = pkgs.runCommand "hello-tests"
+          # Run Dune tests
+          hello = ocamlPackages.buildDunePackage {
+            pname = "hello";
+            src = ocaml-src;
+            version = "0.1.0";
+            useDune2 = true;
+            doCheck = true;
+          };
+
+          # Check generated OPAM file
+          opam = pkgs.runCommand "check-opam"
             {
-              src = ocaml-src;
               nativeBuildInputs = [
-                ocamlPackages.dune_2
-                ocamlPackages.ocaml
+                pkgs.patdiff
+                ocamlPackages.findlib
+
+                self.checks.${system}.hello
               ];
             }
             ''
               mkdir $out
-              dune test
+              echo "checking generated opam files"
+              patdiff -keep-whitespace -location-style omake \
+                '${./hello.opam}' "$(ocamlfind query hello)/opam"
             '';
+
+
           # Check Nix formatting
           nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
             {
