@@ -115,22 +115,9 @@
         defaultPackage = self.packages.${system}.hello;
 
         # Executed by `nix run .#<name>`
-        apps.hello = pkgs.stdenv.mkDerivation {
-          pname = "hello";
-          version = "0.1.0";
-          src = ocaml-src;
-
-          nativeBuildInputs = [
-            ocamlPackages.dune_2
-            ocamlPackages.ocaml
-          ];
-
-          buildPhase = "dune build bin/main.exe";
-
-          installPhase = ''
-            mkdir -p $out/bin
-            mv _build/default/bin/main.exe $out/bin/hello
-          '';
+        apps.hello = {
+          type = "app";
+          program = "${self.packages.${system}.hello}/bin/hello";
         };
 
         # Executed by `nix run`
