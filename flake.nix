@@ -136,6 +136,11 @@
             # pkgs.ocamlformat # FIXME: fails to build `uunf` on my M1 mac :(
             ocamlPackages.merlin
             ocamlPackages.ocaml-lsp
+            # FIXME: the `ocamllabs.ocaml-platform` VS Code extension does not
+            # seem to find this library, complaining that:
+            #
+            # > OCamlformat_rpc is missing, displayed types might not be
+            # > properly formatted.
             ocamlPackages.ocamlformat-rpc-lib
           ];
         };
