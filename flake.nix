@@ -56,7 +56,8 @@
               nativeBuildInputs = [
                 pkgs.diffutils
                 ocamlPackages.findlib
-
+              ];
+              buildInputs = [
                 self.checks.${system}.hello
               ];
             }
