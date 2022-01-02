@@ -17,13 +17,3 @@ jobs:
 
     - name: Check flake and run tests
       run: nix flake check --print-build-logs
-
-  docs:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2.4.0
-    - uses: cachix/install-nix-action@v16
-
-    - name: Build documentation
-      run: nix build .#hello-doc --print-build-logs

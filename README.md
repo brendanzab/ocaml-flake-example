@@ -87,15 +87,6 @@ nix build
 This should create a `result` symlink in the current directory, which will
 contain the `hello` executable and library.
 
-### Building the documentation
-
-Documentation can be built using the `nix` command with:
-
-```sh
-nix build .#hello-doc
-open result/share/doc/hello/index.html
-```
-
 ### Running the tests
 
 The tests can be run using the `nix` command with:
