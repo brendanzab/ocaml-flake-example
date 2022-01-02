@@ -42,10 +42,12 @@
           # Build dune package with checks enabled
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
-            src = ocaml-src;
             version = "0.1.0";
-            useDune2 = true;
+
+            src = ocaml-src;
             doCheck = true;
+
+            useDune2 = true;
           };
 
           # Check generated opam file
@@ -54,7 +56,8 @@
               nativeBuildInputs = [
                 pkgs.diffutils
                 ocamlPackages.findlib
-
+              ];
+              buildInputs = [
                 self.checks.${system}.hello
               ];
             }
@@ -93,24 +96,20 @@
         packages.hello = ocamlPackages.buildDunePackage {
           pname = "hello";
           version = "0.1.0";
+
           src = ocaml-src;
-          useDune2 = true;
-        };
-        packages.hello-doc = pkgs.stdenv.mkDerivation {
-          name = "hello-doc";
-          src = ocaml-src;
+
           nativeBuildInputs = [
-            ocamlPackages.dune_2
-            ocamlPackages.ocaml
             ocamlPackages.odoc
           ];
 
-          buildPhase = "dune build @doc";
-
-          installPhase = ''
-            mkdir -p $out/doc
-            mv _build/default/_doc/_html $out/doc/hello
+          postBuild = "dune build @doc";
+          postInstall = ''
+            mkdir -p $out/doc/hello/html
+            cp -r _build/default/_doc/_html/* $out/doc/hello/html
           '';
+
+          useDune2 = true;
         };
 
         # Executed by `nix build`
@@ -138,6 +137,11 @@
             # pkgs.ocamlformat # FIXME: fails to build `uunf` on my M1 mac :(
             ocamlPackages.merlin
             ocamlPackages.ocaml-lsp
+            # FIXME: the `ocamllabs.ocaml-platform` VS Code extension does not
+            # seem to find this library, complaining that:
+            #
+            # > OCamlformat_rpc is missing, displayed types might not be
+            # > properly formatted.
             ocamlPackages.ocamlformat-rpc-lib
           ];
         };
