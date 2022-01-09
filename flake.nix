@@ -21,7 +21,6 @@
           root = ./.;
           include = [
             "dune-project"
-            (nix-filter.lib.matchExt "opam")
             (nix-filter.lib.inDirectory "bin")
             (nix-filter.lib.inDirectory "lib")
             (nix-filter.lib.inDirectory "test")
@@ -43,40 +42,10 @@
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
             version = "0.1.0";
-
             src = ocaml-src;
             doCheck = true;
-
             useDune2 = true;
           };
-
-          # Check generated opam file
-          opam = pkgs.runCommand "check-opam"
-            {
-              nativeBuildInputs = [
-                pkgs.diffutils
-                ocamlPackages.findlib
-              ];
-              buildInputs = [
-                self.checks.${system}.hello
-              ];
-            }
-            ''
-              mkdir $out
-
-              echo "checking generated opam files"
-
-              set +e
-              diff -u '${ocaml-src}/hello.opam' "$(ocamlfind query hello)/opam"
-              exitcode=$?
-              set -e
-
-              if [ $exitcode -ne 0 ]; then
-                echo "error: The opam file differs from the one found in the nix store"
-                echo "hint: Run \`dune build\` in the source tree to regenerate it"
-                exit $exitcode
-              fi
-            '';
 
 
           # Check Nix formatting
@@ -103,6 +72,7 @@
             ocamlPackages.odoc
           ];
 
+          preBuild = "dune build hello.opam";
           postBuild = "dune build @doc";
           postInstall = ''
             mkdir -p $out/doc/hello/html
