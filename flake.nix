@@ -96,13 +96,10 @@
 
         # Used by `nix develop`
         devShell = pkgs.mkShell {
+          inputsFrom = [
+            self.defaultPackage.${system}
+          ];
           nativeBuildInputs = [
-            ocamlPackages.dune_2
-            ocamlPackages.ocaml
-
-            # For `dune build @doc`
-            ocamlPackages.odoc
-
             # Editor support
             # pkgs.ocamlformat # FIXME: fails to build `uunf` on my M1 mac :(
             ocamlPackages.merlin
