@@ -62,7 +62,7 @@ these files to git.
 [`nix-direnv`]: https://github.com/nix-community/nix-direnv/
 [gitignore]: https://git-scm.com/docs/gitignore
 [excludes]: https://git-scm.com/docs/gitignore#_configuration
-[vscode-direnv]: https://github.com/cab404/vscode-direnv
+[vscode-direnv]: https://github.com/direnv/direnv-vscode
 
 ## Flake Usage
 
