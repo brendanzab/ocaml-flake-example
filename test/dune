@@ -5,6 +5,7 @@
 
 (test
  (name say_hello)
+ (package hello)
  (libraries hello))
 
 ; More information on Cram tests can be found in the Dune documentation:
@@ -12,4 +13,5 @@
 ; - https://dune.readthedocs.io/en/stable/tests.html#cram-tests
 
 (cram
+ (package hello)
  (deps %{bin:hello}))
