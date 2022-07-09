@@ -12,9 +12,9 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         # Legacy packages that have not been converted to flakes
-        pkgs = nixpkgs.legacyPackages.${system};
+        legacyPackages = nixpkgs.legacyPackages.${system};
         # OCaml packages available on nixpkgs
-        ocamlPackages = pkgs.ocamlPackages;
+        ocamlPackages = legacyPackages.ocamlPackages;
 
         # OCaml source files
         ocaml-src = nix-filter.lib.filter {
@@ -36,23 +36,57 @@
         };
       in
       {
-        # Executed by `nix flake check`
-        checks = {
-          # Build dune package with checks enabled
+        # Executed by `nix build .#<name>`
+        packages = {
+          # Executed by `nix build .#hello`
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
             version = "0.1.0";
+            duneVersion = "2";
+
             src = ocaml-src;
-            doCheck = true;
-            useDune2 = true;
+
+            nativeBuildInputs = [
+              ocamlPackages.odoc
+            ];
+
+            preBuild = "dune build hello.opam";
+            postBuild = "dune build @doc -p hello";
+            postInstall = ''
+              echo "Installing $out/share/doc/hello/html"
+              mkdir -p $out/share/doc/hello/html
+              cp -r _build/default/_doc/_html/* $out/share/doc/hello/html
+            '';
           };
 
+          # Executed by `nix build`
+          default = self.packages.${system}.hello;
+        };
+
+        # Executed by `nix run .#<name> <args?>`
+        apps = {
+          # Executed by `nix run .#hello`
+          hello = {
+            type = "app";
+            program = "${self.packages.${system}.hello}/bin/hello";
+          };
+
+          # Executed by `nix run`
+          default = self.apps.${system}.hello;
+        };
+
+        # Executed by `nix flake check`
+        checks = {
+          # Run tests for the `hello` package
+          hello = self.packages.${system}.hello.overrideAttrs (oldAttrs: {
+            doCheck = true;
+          });
 
           # Check Nix formatting
-          nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
+          nixpkgs-fmt = legacyPackages.runCommand "check-nixpkgs-fmt"
             {
               nativeBuildInputs = [
-                pkgs.nixpkgs-fmt
+                legacyPackages.nixpkgs-fmt
               ];
             }
             ''
@@ -61,56 +95,26 @@
             '';
         };
 
-        # Executed by `nix build .#<name>`
-        packages.hello = ocamlPackages.buildDunePackage {
-          pname = "hello";
-          version = "0.1.0";
-
-          src = ocaml-src;
-
-          nativeBuildInputs = [
-            ocamlPackages.odoc
-          ];
-
-          preBuild = "dune build hello.opam";
-          postBuild = "dune build @doc";
-          postInstall = ''
-            mkdir -p $out/doc/hello/html
-            cp -r _build/default/_doc/_html/* $out/doc/hello/html
-          '';
-
-          useDune2 = true;
-        };
-
-        # Executed by `nix build`
-        defaultPackage = self.packages.${system}.hello;
-
-        # Executed by `nix run .#<name>`
-        apps.hello = {
-          type = "app";
-          program = "${self.packages.${system}.hello}/bin/hello";
-        };
-
-        # Executed by `nix run`
-        defaultApp = self.apps.${system}.hello;
-
         # Used by `nix develop`
-        devShell = pkgs.mkShell {
-          inputsFrom = [
-            self.defaultPackage.${system}
-          ];
-          nativeBuildInputs = [
-            # Editor support
-            # pkgs.ocamlformat # FIXME: fails to build `uunf` on my M1 mac :(
-            ocamlPackages.merlin
-            ocamlPackages.ocaml-lsp
-            # FIXME: the `ocamllabs.ocaml-platform` VS Code extension does not
-            # seem to find this library, complaining that:
-            #
-            # > OCamlformat_rpc is missing, displayed types might not be
-            # > properly formatted.
-            ocamlPackages.ocamlformat-rpc-lib
-          ];
+        devShells = {
+          default = legacyPackages.mkShell {
+            # Development tools
+            packages = [
+              # Nix tools
+              legacyPackages.nixpkgs-fmt
+              # For `dune build --watch ...`
+              legacyPackages.fswatch
+              # Editor support
+              ocamlPackages.ocaml-lsp
+              ocamlPackages.ocamlformat-rpc-lib
+              # Fancy REPL thing
+              ocamlPackages.utop
+            ];
+
+            inputsFrom = [
+              self.packages.${system}.hello
+            ];
+          };
         };
       });
 }
