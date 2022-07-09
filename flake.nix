@@ -15,12 +15,16 @@
         legacyPackages = nixpkgs.legacyPackages.${system};
         # OCaml packages available on nixpkgs
         ocamlPackages = legacyPackages.ocamlPackages;
+        # Library functions from nixpkgs
+        lib = legacyPackages.lib;
 
         # OCaml source files
         ocaml-src = nix-filter.lib.filter {
           root = ./.;
           include = [
+            ".ocamlformat"
             "dune-project"
+            (nix-filter.lib.matchExt "opam")
             (nix-filter.lib.inDirectory "bin")
             (nix-filter.lib.inDirectory "lib")
             (nix-filter.lib.inDirectory "test")
@@ -52,8 +56,17 @@
               ocamlPackages.odoc
             ];
 
-            preBuild = "dune build hello.opam";
-            postBuild = "dune build @doc -p hello";
+            strictDeps = true;
+
+            preBuild = ''
+              dune build hello.opam
+            '';
+
+            postBuild = ''
+              echo "building docs"
+              dune build @doc -p hello
+            '';
+
             postInstall = ''
               echo "Installing $doc/share/doc/hello/html"
               mkdir -p $doc/share/doc/hello/html
@@ -80,19 +93,50 @@
         # Executed by `nix flake check`
         checks = {
           # Run tests for the `hello` package
-          hello = self.packages.${system}.hello.overrideAttrs (oldAttrs: {
-            doCheck = true;
-          });
+          hello =
+            let
+              # Patches calls to dune commands to produce log-friendly output
+              # when using `nix ... --print-build-log`. Ideally there would be
+              # support for one or more of the following:
+              #
+              # - have workspace-specific dune configuration files
+              # - be able to set dune flags in `buildDunePackage`
+              # - alter `buildDunePackage` so that it uses `--display=short`
+              # - alter `buildDunePackage` so that it allows `--config-file=FILE` to be set
+              patchDuneCommand =
+                let
+                  subcmds = [ "build" "test" "runtest" "install" ];
+                  from = lib.lists.map (subcmd: "dune ${subcmd}") subcmds;
+                  to = lib.lists.map (subcmd: "dune ${subcmd} --display=short") subcmds;
+                in
+                lib.replaceStrings from to;
+            in
+
+            self.packages.${system}.hello.overrideAttrs (oldAttrs: {
+              name = "check-${oldAttrs.name}";
+              nativeBuildInputs =
+                oldAttrs.nativeBuildInputs ++ [
+                  legacyPackages.ocamlformat
+                ];
+
+              buildPhase = patchDuneCommand oldAttrs.buildPhase;
+              postBuild = patchDuneCommand oldAttrs.postBuild;
+              checkPhase = patchDuneCommand oldAttrs.checkPhase;
+              installPhase = patchDuneCommand oldAttrs.installPhase;
+
+              doCheck = true;
+              postCheck = ''
+                echo "checking formatting"
+                dune build --display=short @fmt -p ${oldAttrs.pname}
+              '';
+            });
 
           # Check Nix formatting
           nixpkgs-fmt = legacyPackages.runCommand "check-nixpkgs-fmt"
-            {
-              nativeBuildInputs = [
-                legacyPackages.nixpkgs-fmt
-              ];
-            }
+            { nativeBuildInputs = [ legacyPackages.nixpkgs-fmt ]; }
             ''
               mkdir $out
+              echo "checking formatting"
               nixpkgs-fmt --check ${nix-src}
             '';
         };
@@ -102,17 +146,20 @@
           default = legacyPackages.mkShell {
             # Development tools
             packages = [
-              # Nix tools
+              # Source file formatting
               legacyPackages.nixpkgs-fmt
+              legacyPackages.ocamlformat
               # For `dune build --watch ...`
               legacyPackages.fswatch
-              # Editor support
+              # OCaml editor support
               ocamlPackages.ocaml-lsp
+              # Nicely formatted types on hover
               ocamlPackages.ocamlformat-rpc-lib
               # Fancy REPL thing
               ocamlPackages.utop
             ];
 
+            # Tools from packages
             inputsFrom = [
               self.packages.${system}.hello
             ];

@@ -1,2 +1,1 @@
-let () =
-  Hello.say_hello ()
+let () = Hello.say_hello ()
