@@ -46,6 +46,8 @@
 
             src = ocaml-src;
 
+            outputs = [ "doc" "out" ];
+
             nativeBuildInputs = [
               ocamlPackages.odoc
             ];
@@ -53,9 +55,9 @@
             preBuild = "dune build hello.opam";
             postBuild = "dune build @doc -p hello";
             postInstall = ''
-              echo "Installing $out/share/doc/hello/html"
-              mkdir -p $out/share/doc/hello/html
-              cp -r _build/default/_doc/_html/* $out/share/doc/hello/html
+              echo "Installing $doc/share/doc/hello/html"
+              mkdir -p $doc/share/doc/hello/html
+              cp -r _build/default/_doc/_html/* $doc/share/doc/hello/html
             '';
           };
 

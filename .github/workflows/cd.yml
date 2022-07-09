@@ -17,11 +17,11 @@ jobs:
     - name: Install Nix
       uses: cachix/install-nix-action@v16
 
-    - name: Build flake
-      run: nix build --print-build-logs
+    - name: Build flake docs
+      run: nix build .#hello.doc --print-build-logs
 
-    - name: Deploy to GitHub Pages
+    - name: Deploy docs to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@4.1.8
       with:
         branch: gh-pages
-        folder: result/share/doc/hello/html
+        folder: result-doc/share/doc/hello/html
