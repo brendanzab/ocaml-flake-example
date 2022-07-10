@@ -119,25 +119,41 @@
                   legacyPackages.ocamlformat
                 ];
 
+              doCheck = true;
               buildPhase = patchDuneCommand oldAttrs.buildPhase;
               postBuild = patchDuneCommand oldAttrs.postBuild;
               checkPhase = patchDuneCommand oldAttrs.checkPhase;
-              installPhase = patchDuneCommand oldAttrs.installPhase;
-
-              doCheck = true;
-              postCheck = ''
-                echo "checking formatting"
-                dune build --display=short @fmt -p ${oldAttrs.pname}
-              '';
+              installPhase = "touch $out $doc";
+              dontFixup = true;
             });
+
+          # Check Dune and OCaml formatting
+          dune-fmt = legacyPackages.runCommand "check-dune-fmt"
+            {
+              nativeBuildInputs = [
+                ocamlPackages.ocaml
+                ocamlPackages.dune_2
+                legacyPackages.ocamlformat
+              ];
+            }
+            ''
+              echo "checking formatting"
+              dune build \
+                --display=short \
+                --root="${ocaml-src}" \
+                --build-dir="$(pwd)/_build" \
+                --no-print-directory \
+                @fmt
+              touch $out
+            '';
 
           # Check Nix formatting
           nixpkgs-fmt = legacyPackages.runCommand "check-nixpkgs-fmt"
             { nativeBuildInputs = [ legacyPackages.nixpkgs-fmt ]; }
             ''
-              mkdir $out
               echo "checking formatting"
               nixpkgs-fmt --check ${nix-src}
+              touch $out
             '';
         };
 
