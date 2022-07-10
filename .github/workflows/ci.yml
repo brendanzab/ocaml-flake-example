@@ -20,4 +20,4 @@ jobs:
       run: nix build --print-build-logs
 
     - name: Check flake and run tests
-      run: nix flake check --print-build-logs
+      run: nix flake check --keep-going --print-build-logs
