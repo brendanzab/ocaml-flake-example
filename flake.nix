@@ -46,6 +46,8 @@
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
             version = "0.1.0";
+            # Would be nice to use dune 3.x, but the odoc package needs to be
+            # updated first.
             duneVersion = "2";
 
             src = ocaml-src;
