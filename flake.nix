@@ -46,9 +46,7 @@
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
             version = "0.1.0";
-            # Would be nice to use dune 3.x, but the odoc package needs to be
-            # updated first.
-            duneVersion = "2";
+            duneVersion = "3";
 
             src = ocaml-src;
 
@@ -144,7 +142,7 @@
             {
               nativeBuildInputs = [
                 ocamlPackages.ocaml
-                ocamlPackages.dune_2
+                ocamlPackages.dune_3
                 legacyPackages.ocamlformat
               ];
             }
