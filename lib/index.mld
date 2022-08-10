@@ -1,0 +1,9 @@
+{0 hello}
+
+Welcome to [hello]'s documentation!
+
+{1 API documentation}
+
+{!modules:
+  Hello
+}

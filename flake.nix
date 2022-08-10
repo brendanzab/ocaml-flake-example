@@ -47,30 +47,12 @@
             pname = "hello";
             version = "0.1.0";
             duneVersion = "3";
-
             src = ocaml-src;
-
-            outputs = [ "out" "doc" ];
-
-            nativeBuildInputs = [
-              ocamlPackages.odoc
-            ];
 
             strictDeps = true;
 
             preBuild = ''
               dune build hello.opam
-            '';
-
-            postBuild = ''
-              echo "building docs"
-              dune build @doc -p hello
-            '';
-
-            postInstall = ''
-              echo "Installing $doc/share/doc/hello/html"
-              mkdir -p $doc/share/doc/hello/html
-              cp -r _build/default/_doc/_html/* $doc/share/doc/hello/html
             '';
           };
 
@@ -117,14 +99,15 @@
                   (lib.lists.map (subcmd: "dune ${subcmd} --display=short") subcmds);
             in
 
-            self.packages.${system}.hello.overrideAttrs (oldAttrs: {
-              name = "check-${oldAttrs.name}";
-              doCheck = true;
-
-              buildPhase = patchDuneCommand oldAttrs.buildPhase;
-              postBuild = patchDuneCommand oldAttrs.postBuild;
-              checkPhase = patchDuneCommand oldAttrs.checkPhase;
-            });
+            self.packages.${system}.hello.overrideAttrs
+              (oldAttrs: {
+                name = "check-${oldAttrs.name}";
+                doCheck = true;
+                buildPhase = patchDuneCommand oldAttrs.buildPhase;
+                checkPhase = patchDuneCommand oldAttrs.checkPhase;
+                # skip installation (this will be tested in the `hello-app` check)
+                installPhase = "touch $out";
+              });
 
           # Check that the `hello` app exists and is executable
           hello-app = legacyPackages.runCommand "check-hello-app"
@@ -140,19 +123,40 @@
           dune-fmt = legacyPackages.runCommand "check-dune-fmt"
             {
               nativeBuildInputs = [
-                ocamlPackages.ocaml
                 ocamlPackages.dune_3
+                ocamlPackages.ocaml
                 legacyPackages.ocamlformat
               ];
             }
             ''
-              echo "checking formatting"
+              echo "checking dune and ocaml formatting"
               dune build \
                 --display=short \
+                --no-print-directory \
                 --root="${ocaml-src}" \
                 --build-dir="$(pwd)/_build" \
-                --no-print-directory \
                 @fmt
+              touch $out
+            '';
+
+          # Check documentation generation
+          dune-doc = legacyPackages.runCommand "check-dune-doc"
+            {
+              ODOC_WARN_ERROR = "true";
+              nativeBuildInputs = [
+                ocamlPackages.dune_3
+                ocamlPackages.ocaml
+                ocamlPackages.odoc
+              ];
+            }
+            ''
+              echo "checking ocaml documentation"
+              dune build \
+                --display=short \
+                --no-print-directory \
+                --root="${ocaml-src}" \
+                --build-dir="$(pwd)/_build" \
+                @doc
               touch $out
             '';
 
@@ -160,7 +164,7 @@
           nixpkgs-fmt = legacyPackages.runCommand "check-nixpkgs-fmt"
             { nativeBuildInputs = [ legacyPackages.nixpkgs-fmt ]; }
             ''
-              echo "checking formatting"
+              echo "checking nix formatting"
               nixpkgs-fmt --check ${nix-src}
               touch $out
             '';
@@ -176,6 +180,8 @@
               legacyPackages.ocamlformat
               # For `dune build --watch ...`
               legacyPackages.fswatch
+              # For `dune build @doc`
+              ocamlPackages.odoc
               # OCaml editor support
               ocamlPackages.ocaml-lsp
               # Nicely formatted types on hover

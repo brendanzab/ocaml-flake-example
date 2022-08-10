@@ -18,10 +18,10 @@ jobs:
       uses: cachix/install-nix-action@v16
 
     - name: Build flake docs
-      run: nix build .#hello.doc --print-build-logs
+      run: nix develop --command dune build @doc --display=short
 
     - name: Deploy docs to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@4.1.8
       with:
         branch: gh-pages
-        folder: result-doc/share/doc/hello/html
+        folder: _build/default/_doc/_html/
