@@ -99,32 +99,31 @@
               # when using `nix ... --print-build-log`. Ideally there would be
               # support for one or more of the following:
               #
+              # In Dune:
+              #
               # - have workspace-specific dune configuration files
-              # - be able to set dune flags in `buildDunePackage`
-              # - alter `buildDunePackage` so that it uses `--display=short`
-              # - alter `buildDunePackage` so that it allows `--config-file=FILE` to be set
+              #
+              # In NixPkgs:
+              #
+              # - allow dune flags to be set in in `ocamlPackages.buildDunePackage`
+              # - alter `ocamlPackages.buildDunePackage` to use `--display=short`
+              # - alter `ocamlPackages.buildDunePackage` to allow `--config-file=FILE` to be set
               patchDuneCommand =
                 let
                   subcmds = [ "build" "test" "runtest" "install" ];
-                  from = lib.lists.map (subcmd: "dune ${subcmd}") subcmds;
-                  to = lib.lists.map (subcmd: "dune ${subcmd} --display=short") subcmds;
                 in
-                lib.replaceStrings from to;
+                lib.replaceStrings
+                  (lib.lists.map (subcmd: "dune ${subcmd}") subcmds)
+                  (lib.lists.map (subcmd: "dune ${subcmd} --display=short") subcmds);
             in
 
             self.packages.${system}.hello.overrideAttrs (oldAttrs: {
               name = "check-${oldAttrs.name}";
-              nativeBuildInputs =
-                oldAttrs.nativeBuildInputs ++ [
-                  legacyPackages.ocamlformat
-                ];
-
               doCheck = true;
+
               buildPhase = patchDuneCommand oldAttrs.buildPhase;
               postBuild = patchDuneCommand oldAttrs.postBuild;
               checkPhase = patchDuneCommand oldAttrs.checkPhase;
-              installPhase = "touch $out $doc";
-              dontFixup = true;
             });
 
           # Check that the `hello` app exists and is executable
