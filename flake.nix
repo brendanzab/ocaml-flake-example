@@ -52,7 +52,7 @@
 
             src = ocaml-src;
 
-            outputs = [ "doc" "out" ];
+            outputs = [ "out" "doc" ];
 
             nativeBuildInputs = [
               ocamlPackages.odoc
@@ -128,6 +128,16 @@
               installPhase = "touch $out $doc";
               dontFixup = true;
             });
+
+          # Check that the `hello` app exists and is executable
+          hello-app = legacyPackages.runCommand "check-hello-app"
+            { PROGRAM = self.apps.${system}.hello.program; }
+            ''
+              echo "checking hello app"
+              [[ -e $PROGRAM ]] || (echo "error: $PROGRAM does not exist" && exit 1)
+              [[ -x $PROGRAM ]] || (echo "error: $PROGRAM is not executable" && exit 1)
+              touch $out
+            '';
 
           # Check Dune and OCaml formatting
           dune-fmt = legacyPackages.runCommand "check-dune-fmt"
