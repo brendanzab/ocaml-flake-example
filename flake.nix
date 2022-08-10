@@ -18,25 +18,25 @@
         # Library functions from nixpkgs
         lib = legacyPackages.lib;
 
-        # OCaml source files
-        ocaml-src = nix-filter.lib.filter {
-          root = ./.;
-          include = [
-            ".ocamlformat"
-            "dune-project"
-            (nix-filter.lib.matchExt "opam")
-            (nix-filter.lib.inDirectory "bin")
-            (nix-filter.lib.inDirectory "lib")
-            (nix-filter.lib.inDirectory "test")
-          ];
-        };
+        # Filtered sources (prevents unecessary rebuilds)
+        sources = {
+          ocaml = nix-filter.lib {
+            root = ./.;
+            include = [
+              ".ocamlformat"
+              "dune-project"
+              (nix-filter.lib.inDirectory "bin")
+              (nix-filter.lib.inDirectory "lib")
+              (nix-filter.lib.inDirectory "test")
+            ];
+          };
 
-        # Nix source files
-        nix-src = nix-filter.lib.filter {
-          root = ./.;
-          include = [
-            (nix-filter.lib.matchExt "nix")
-          ];
+          nix = nix-filter.lib {
+            root = ./.;
+            include = [
+              (nix-filter.lib.matchExt "nix")
+            ];
+          };
         };
       in
       {
@@ -47,7 +47,7 @@
             pname = "hello";
             version = "0.1.0";
             duneVersion = "3";
-            src = ocaml-src;
+            src = sources.ocaml;
 
             strictDeps = true;
 
@@ -133,7 +133,7 @@
               dune build \
                 --display=short \
                 --no-print-directory \
-                --root="${ocaml-src}" \
+                --root="${sources.ocaml}" \
                 --build-dir="$(pwd)/_build" \
                 @fmt
               touch $out
@@ -154,7 +154,7 @@
               dune build \
                 --display=short \
                 --no-print-directory \
-                --root="${ocaml-src}" \
+                --root="${sources.ocaml}" \
                 --build-dir="$(pwd)/_build" \
                 @doc
               touch $out
@@ -165,7 +165,7 @@
             { nativeBuildInputs = [ legacyPackages.nixpkgs-fmt ]; }
             ''
               echo "checking nix formatting"
-              nixpkgs-fmt --check ${nix-src}
+              nixpkgs-fmt --check ${sources.nix}
               touch $out
             '';
         };
