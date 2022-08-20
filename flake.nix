@@ -1,6 +1,16 @@
 {
   description = "A flake demonstrating how to build OCaml projects with Dune";
 
+  # Flake dependency specification
+  #
+  # To update all flake inputs:
+  #
+  #     $ nix flake update --commit-lockfile
+  #
+  # To update individual flake inputs:
+  #
+  #     $ nix flake lock --update-input <input> ... --commit-lockfile
+  #
   inputs = {
     # Convenience functions for writing flakes
     flake-utils.url = "github:numtide/flake-utils";
@@ -9,6 +19,7 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, nix-filter }:
+    # Construct an output set that supports a number of default systems
     flake-utils.lib.eachDefaultSystem (system:
       let
         # Legacy packages that have not been converted to flakes
@@ -40,9 +51,20 @@
         };
       in
       {
-        # Executed by `nix build .#<name>`
+        # Exposed packages that can be built or run with `nix build` or
+        # `nix run` respectively:
+        #
+        #     $ nix build .#<name>
+        #     $ nix run .#<name> -- <args?>
+        #
         packages = {
-          # Executed by `nix build .#hello`
+          # The package that will be built or run by default. For example:
+          #
+          #     $ nix build
+          #     $ nix run -- <args?>
+          #
+          default = self.packages.${system}.hello;
+
           hello = ocamlPackages.buildDunePackage {
             pname = "hello";
             version = "0.1.0";
@@ -55,12 +77,12 @@
               dune build hello.opam
             '';
           };
-
-          # Executed by `nix build`
-          default = self.packages.${system}.hello;
         };
 
-        # Executed by `nix flake check`
+        # Flake checks
+        #
+        #     $ nix flake check
+        #
         checks = {
           # Run tests for the `hello` package
           hello =
@@ -148,7 +170,17 @@
             '';
         };
 
-        # Used by `nix develop`
+        # Development shells
+        #
+        #    $ nix develop .#<name>
+        #    $ nix develop .#<name> --command dune build @test
+        #
+        # [Direnv](https://direnv.net/) is recommended for automatically loading
+        # development environments in your shell. For example:
+        #
+        #    $ echo "use flake" > .envrc && direnv allow
+        #    $ dune build @test
+        #
         devShells = {
           default = legacyPackages.mkShell {
             # Development tools
