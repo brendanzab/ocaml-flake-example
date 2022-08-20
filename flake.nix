@@ -60,18 +60,6 @@
           default = self.packages.${system}.hello;
         };
 
-        # Executed by `nix run .#<name> <args?>`
-        apps = {
-          # Executed by `nix run .#hello`
-          hello = {
-            type = "app";
-            program = "${self.packages.${system}.hello}/bin/hello";
-          };
-
-          # Executed by `nix run`
-          default = self.apps.${system}.hello;
-        };
-
         # Executed by `nix flake check`
         checks = {
           # Run tests for the `hello` package
@@ -108,16 +96,6 @@
                 # skip installation (this will be tested in the `hello-app` check)
                 installPhase = "touch $out";
               });
-
-          # Check that the `hello` app exists and is executable
-          hello-app = legacyPackages.runCommand "check-hello-app"
-            { PROGRAM = self.apps.${system}.hello.program; }
-            ''
-              echo "checking hello app"
-              [[ -e $PROGRAM ]] || (echo "error: $PROGRAM does not exist" && exit 1)
-              [[ -x $PROGRAM ]] || (echo "error: $PROGRAM is not executable" && exit 1)
-              touch $out
-            '';
 
           # Check Dune and OCaml formatting
           dune-fmt = legacyPackages.runCommand "check-dune-fmt"
