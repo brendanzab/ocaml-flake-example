@@ -54,10 +54,6 @@
             ];
 
             strictDeps = true;
-
-            preBuild = ''
-              dune build hello.opam
-            '';
           };
         });
 

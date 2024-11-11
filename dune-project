@@ -1,9 +1,10 @@
-(lang dune 3.4)
+(lang dune 3.8)
 (name hello)
 (license MIT-0)
 
 ; https://dune.readthedocs.io/en/stable/opam.html#generating-opam-files
-(generate_opam_files true)
+(generate_opam_files)
+(opam_file_location inside_opam_directory)
 
 (cram enable)
 
