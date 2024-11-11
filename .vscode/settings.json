@@ -1,5 +1,7 @@
 {
+    // https://github.com/ocamllabs/vscode-ocaml-platform/issues/984
     "ocaml.sandbox": {
-        "kind": "global",
+        "kind": "custom",
+        "template": "direnv exec ${firstWorkspaceFolder} $prog $args",
     },
 }
